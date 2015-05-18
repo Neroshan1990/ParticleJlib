@@ -202,9 +202,19 @@ public class MainActivity extends Activity {
 		// ParticleService particleService=new ParticleService(particle);
 		// queueRunnables.add(particleService);
 		// }
-		ParticleService particleService = new ParticleService(particles);
-		queueRunnables.add(particleService);
-
+		int partLength=particles.length/NUMBER_OF_CORES;
+		for(int j=0;j<NUMBER_OF_CORES;j++){
+			Particle[] parts=new Particle[partLength];
+			int k=0;
+			for(int i=(partLength*j);i<partLength;i++,k++){
+				parts[k]=particles[i];
+			}
+			ParticleService particleService = new ParticleService(parts);
+			queueRunnables.add(particleService);
+			
+		}
+//		ParticleService particleService = new ParticleService(particles);
+//		queueRunnables.add(particleService);
 		tPoolExecutor.prestartAllCoreThreads();
 
 	}
@@ -277,6 +287,363 @@ public class MainActivity extends Activity {
 		public ParticleService(Particle[] particles) {
 			this.particles = particles;
 		}
+		
+		private void collutionProcess(Particle particle){
+			boolean tLeft=false;
+			boolean dLeft=false;
+			boolean tRight=false;
+			boolean dRight=false;
+			double dueY=0;
+			double dueX=0;			
+        	double xMatter=0;
+        	double yMatter=0;        	
+        	boolean specialCaseY=false;
+        	boolean specialCaseX=false;
+        	double relativeSpeedX=0;
+        	double impactRelativePC=0;
+        	double relativeSpeedY=0;
+        	double impactRelativeYPC = 0;
+        	double impactRelativeP = 0;
+        	double impactRelativeYP =0;
+        	int particleTravelRoadRelative=-1;
+			int particleCollutionTravelRoadRelative=-1;			
+			int particleTravelRelative=-1;
+			int particleCollutionTravelRelative=-1;
+			boolean directionSpeed=false;
+			
+			double dueFix=0;
+			//particleCollution = particles[i];
+		for(Particle particleCollution : particles){
+			if(particleCollution == particle){
+				continue;
+			}
+			tLeft=((particle.s+particle.height)>=particleCollution.s && (particle.sx+particle.width)>=particleCollution.sx && particle.sx<=particleCollution.sx && particle.s<=particleCollution.s);
+			dLeft=((particle.s+particle.height)>=(particleCollution.s+particleCollution.height) && (particle.sx+particle.width)>=particleCollution.sx && particle.sx<=particleCollution.sx && particle.s<=(particleCollution.s+particleCollution.height));
+			tRight=((particle.s+particle.height)>=(particleCollution.s) && (particle.sx+particle.width)>=(particleCollution.sx+particleCollution.width) && particle.sx<=(particleCollution.sx+particleCollution.width) && particle.s<=(particleCollution.s));
+			dRight=((particle.s+particle.height)>=(particleCollution.s+particleCollution.height) && (particle.sx+particle.width)>=(particleCollution.sx+particleCollution.width) && particle.sx<=(particleCollution.sx+particleCollution.width) && particle.s<=(particleCollution.s+particleCollution.height));
+			
+	        if(tLeft ||
+	           dLeft || 
+	           tRight ||
+	           dRight 
+	          	   
+	         ){
+	        	
+	        	dueY=0;
+				dueX=0;
+				
+	        	xMatter=0;
+	        	yMatter=0;
+	        	
+	        	specialCaseY=false;
+	        	specialCaseX=false;
+	        	if(tLeft){
+	        		xMatter=particleCollution.sx;
+	        	    yMatter=particleCollution.s;
+	        	    dueY=(particle.s+particle.height)-yMatter;
+	        	    dueX=(particle.sx+particle.width)-xMatter;
+	        	 
+	        	}
+	        	if(dLeft){
+	        		xMatter=particleCollution.sx;
+	        	    yMatter=particleCollution.s+particleCollution.height;						        	 
+	        	    dueX=(particle.sx+particle.width)-xMatter;
+	        	    dueY=yMatter-particle.s;
+	        	}
+	        	if(tRight){
+	        		xMatter=particleCollution.sx+particleCollution.width;
+	        	    yMatter=particleCollution.s;
+	        	    dueY=(particle.s+particle.height)-yMatter;						        	    
+	        	    dueX=xMatter-particle.sx;
+	        	}
+	        	if(dRight){
+	        		xMatter=particleCollution.sx+particleCollution.width;
+	        	    yMatter=particleCollution.s+particleCollution.height;
+	        	    dueY=yMatter-particle.s;
+	        	    dueX=xMatter-particle.sx;
+	        	}
+	        	//TODO neroshank speicalcases
+//	        	 if((tLeft && dLeft) || (tLeft && tRight) || (tRight && dRight) || (dLeft && dRight)){
+//		        	 if(dueY==0 || dueY==particle.height){
+//		        	    	specialCaseY=true;
+//		        	 }
+//		        	 if(dueX==0 || dueX==particle.width){
+//		        	    	specialCaseX=true;
+//		        	 }
+//	            }
+
+	        	
+					directionSpeed=false;
+	
+//					if((tLeft) || (dLeft && particleCollution.sx>particlePiviotX) || 
+//					    (tRight && particleCollution.s>particlePiviotY)){
+//						dueY=(particle.s+particle.height)-yMatter;
+//						dueX=(particle.sx+particle.width)-xMatter;
+//					}
+//					if((tRight && (particleCollution.sx+particleCollution.width)<particlePiviotX) || (dRight) || (dLeft && (particleCollution.s+particleCollution.height)<particlePiviotY)){
+//						dueY=(yMatter)-particle.s;
+//						dueX=(xMatter)-particle.sx;
+//					}
+					
+					//TODO neroshank
+					relativeSpeedX=0;
+					if(particle.travelTypeRoad!=particleCollution.travelTypeRoad){
+						relativeSpeedX=particle.ux+particleCollution.ux;
+					}else{
+						relativeSpeedX=particle.ux-particleCollution.ux;
+					}
+					impactRelativePC = MotionPhyx.impactPhysx2(-1, particleCollution.m,
+							relativeSpeedX, particleCollution.sh);
+					
+					
+					relativeSpeedY=0;
+					if(particle.travelType!=particleCollution.travelType){
+						relativeSpeedY=particle.u+particleCollution.u;
+					}else{
+						relativeSpeedY=particle.u-particleCollution.u;
+					}
+					impactRelativeYPC = MotionPhyx.impactPhysx2(-1, particleCollution.m,
+							relativeSpeedY, particleCollution.sh);
+					
+					
+					
+					if(particle.travelTypeRoad!=particleCollution.travelTypeRoad){
+						relativeSpeedX=particleCollution.ux+particle.ux;
+					}else{
+						relativeSpeedX=particleCollution.ux-particle.ux;
+					}
+					impactRelativeP = MotionPhyx.impactPhysx2(-1, particleCollution.m,
+							relativeSpeedX, particleCollution.sh);
+					
+					
+					
+					if(particle.travelType!=particleCollution.travelType){
+						relativeSpeedY=particleCollution.u+particle.u;
+					}else{
+						relativeSpeedY=particleCollution.u-particle.u;
+					}
+					impactRelativeYP = MotionPhyx.impactPhysx2(-1, particleCollution.m,
+							relativeSpeedY, particleCollution.sh);
+					
+					particleTravelRoadRelative=-1;
+					particleCollutionTravelRoadRelative=-1;
+					
+					particleTravelRelative=-1;
+					particleCollutionTravelRelative=-1;
+
+					if((dueY>=dueX  && dueY>=0 && dueX>=0) || specialCaseY ){
+						//Log.d("TTE", ""+3);
+						//right collution
+						//TODO neroshank
+						if(((particle.sx+particle.width)/2)<xMatter){
+							particleTravelRoadRelative=TRAVEL_RIGHT;
+							particleCollutionTravelRoadRelative=TRAVEL_LEFT;
+						}
+						//left collution
+						if(((particle.sx+particle.width)/2)>xMatter){
+							particleTravelRoadRelative=TRAVEL_LEFT;
+							particleCollutionTravelRoadRelative=TRAVEL_RIGHT;
+						}
+						
+						if(particle.travelTypeRoad==particleTravelRoadRelative){
+							directionSpeed=true;
+						}else{
+							directionSpeed=false;
+						}
+																
+						particle.ux = MotionPhyx.impactReactionPhysx(
+								(impactRelativeP / impactDivider), particle.m,
+								(particle.ux * particle.impactRatio), -1, 1, directionSpeed);
+						particle.travelTypeRoad=particleTravelRoadRelative;
+						if(particle.ux>0){
+							particle.travelTypeRoad=TRAVEL_RIGHT;
+						}else{
+							particle.travelTypeRoad=TRAVEL_LEFT;
+						}
+						//TODO neroshank
+//						if(particle.ux>0){
+//						    if(particleTravelRoadRelative==TRAVEL_RIGHT)particle.ux*=-1;
+//					    }else{
+//					    	if(particleTravelRoadRelative==TRAVEL_LEFT)particle.ux*=-1;
+//					    }
+						
+						if(particleCollution.travelTypeRoad==particleCollutionTravelRoadRelative){
+							directionSpeed=true;
+						}else{
+							directionSpeed=false;
+						}
+						
+//						if(particle.travelTypeRoad==particleCollution.travelTypeRoad)
+//							impactRelative*=-1;
+						
+						particleCollution.ux = MotionPhyx.impactReactionPhysx(
+								(impactRelativePC / impactDivider), particle.m,
+								(particleCollution.ux * particle.impactRatio), -1, 1, directionSpeed);
+						particleCollution.travelTypeRoad=particleCollutionTravelRoadRelative;
+						if(particleCollution.ux>0){
+							particleCollution.travelTypeRoad=TRAVEL_RIGHT;
+						}else{
+							particleCollution.travelTypeRoad=TRAVEL_LEFT;
+						}
+						//TODO neroshank
+//						if(particleCollution.ux>0){
+//						    if(particleCollutionTravelRoadRelative==TRAVEL_RIGHT)particleCollution.ux*=-1;
+//					    }else{
+//					    	if(particleCollutionTravelRoadRelative==TRAVEL_LEFT)particleCollution.ux*=-1;
+//					    }
+						//TODO Test purpose
+						//particle.ux*=-(0.99);
+						//particleCollution.ux*=-(0.99);
+					}else if((dueY<=dueX && dueY>=0 && dueX>=0) || specialCaseX ){
+						//Log.d("TTE", ""+4);
+						//TODO neroshank
+						if(((particle.s+particle.height)/2)<yMatter){
+							particleTravelRelative=TRAVEL_UP;
+							particleCollutionTravelRelative=TRAVEL_DOWN;
+						}
+						//down collution
+						if(((particle.s+particle.height)/2)>yMatter){
+							particleTravelRelative=TRAVEL_DOWN;
+							particleCollutionTravelRelative=TRAVEL_UP;
+						}
+						
+						if(particle.travelType==particleTravelRelative){
+							directionSpeed=true;
+						}else{
+							directionSpeed=false;
+						}
+																
+						particle.u = MotionPhyx.impactReactionPhysx(
+								(impactRelativeYP / impactDivider), particle.m,
+								(particle.u * particle.impactRatio), -1, 1, directionSpeed);
+						particle.travelType=particleTravelRelative;
+						if(particle.u>0){
+							particle.travelType=TRAVEL_UP;
+						}else{
+							particle.travelType=TRAVEL_DOWN;
+						}
+						//TODO neroshank
+//						 if(particle.u>0){
+//								if(particleTravelRelative==TRAVEL_UP)particle.u*=-1;
+//							}else{
+//								if(particleTravelRelative==TRAVEL_DOWN)particle.u*=-1;
+//							}
+						
+						if(particleCollution.travelType==particleCollutionTravelRelative){
+							directionSpeed=true;
+						}else{
+							directionSpeed=false;
+						}
+						
+//						if(particle.travelType==particleCollution.travelType)
+//							impactRelativeY*=-1;
+																
+						particleCollution.u = MotionPhyx.impactReactionPhysx(
+								(impactRelativeYPC / impactDivider), particle.m,
+								(particleCollution.u * particle.impactRatio), -1, 1, directionSpeed);
+						particleCollution.travelType=particleCollutionTravelRelative;
+						if(particleCollution.u>0){
+							particleCollution.travelType=TRAVEL_UP;
+						}else{
+							particleCollution.travelType=TRAVEL_DOWN;
+						}
+					//TODO neroshank	
+//				    if(particleCollution.u>0){
+//						if(particleCollutionTravelRelative==TRAVEL_UP)particleCollution.u*=-1;
+//					}else{
+//						if(particleCollutionTravelRelative==TRAVEL_DOWN)particleCollution.u*=-1;
+//					}
+						//TODO Test purpose
+						//particle.u*=-(0.99);
+						//particleCollution.u*=-(0.99);
+					}
+					dueFix=0;
+					if(tLeft){
+						
+						if((dueY>=dueX && dueY>=0 && dueX>=0 ) || specialCaseY ){
+							dueFix=(particle.sx+particle.width)-(particleCollution.sx-0);
+							if(particleCollution.sx>0)
+								particleCollution.sx+=dueFix;
+							else
+								particleCollution.sx-=dueFix;
+						}
+						
+						if((dueY<=dueX && dueY>=0 && dueX>=0) || specialCaseX ){
+							dueFix=(particle.s+particle.height)-(particleCollution.s-0);
+							if(particleCollution.s>0)
+								particleCollution.s+=dueFix;
+							else
+								particleCollution.s-=dueFix;
+							
+						}
+						//particleCollution.s=particle.s+particle.height;
+					}
+					else if(tRight){
+						
+						if((dueY>=dueX && dueY>=0 && dueX>=0) || specialCaseY ){
+							dueFix=((particleCollution.sx+particleCollution.width)-0)-(particle.sx);
+							if(particleCollution.sx>0)
+								particleCollution.sx-=dueFix;
+							else
+								particleCollution.sx+=dueFix;
+						}
+						
+						if((dueY<=dueX && dueY>=0 && dueX>=0) || specialCaseX ){
+							dueFix=(particle.s+particle.height)-(particleCollution.s-0);
+							if(particleCollution.s>0)
+								particleCollution.s+=dueFix;
+							else
+								particleCollution.s-=dueFix;
+							
+						}
+					}
+					else if(dLeft){
+						
+						if((dueY>=dueX && dueY>=0 && dueX>=0) || specialCaseY ){
+							dueFix=(particle.sx+particle.width)-(particleCollution.sx-0);
+							if(particleCollution.sx>0)
+								particleCollution.sx+=dueFix;
+							else
+								particleCollution.sx-=dueFix;
+						}
+						
+						if((dueY<=dueX && dueY>=0 && dueX>=0) || specialCaseX ){
+							dueFix=((particleCollution.s+particleCollution.height)-0)-particle.s;
+							if(particleCollution.s>0)
+								particleCollution.s-=dueFix;
+							else
+								particleCollution.s+=dueFix;
+							
+						}
+					}
+					else if(dRight){
+						
+						if((dueY>=dueX && dueY>=0 && dueX>=0) || specialCaseY ){
+							dueFix=((particleCollution.sx+particleCollution.width)-0)-(particle.sx);
+							if(particleCollution.sx>0)
+								particleCollution.sx-=dueFix;
+							else
+								particleCollution.sx+=dueFix;
+						}
+						
+						if((dueY<=dueX && dueY>=0 && dueX>=0) || specialCaseX ){
+							dueFix=((particleCollution.s+particleCollution.height)-0)-particle.s;
+							if(particleCollution.s>0)
+								particleCollution.s-=dueFix;
+							else
+								particleCollution.s+=dueFix;
+							
+						}
+					}
+					
+					
+					
+					//TODO neroshank fails multiple collution detection
+					//break;
+	        	
+		    }
+		}
+		}
 
 		@Override
 		public void run() {
@@ -289,364 +656,37 @@ public class MainActivity extends Activity {
 			    //t=tCluster;
 				statuses = 0;
 				//int c=0;
-				for (Particle particle : particles) {
-					if (particle.statusInitialize == 1) {
-						if (particle.u <= 0)
-							particle.travelType = TRAVEL_DOWN;
-						else
-							particle.travelType = TRAVEL_UP;
-						if (particle.ux >= 0)
-							particle.travelTypeRoad = TRAVEL_RIGHT;
-						else
-							particle.travelTypeRoad = TRAVEL_LEFT;
-
-						particle.statusInitialize = 0;
-					}
+				for(Particle particle : particles){//neroshank reduced two nested loops in to one loop logic
+				
+						if (particle.statusInitialize == 1) {
+							if (particle.u <= 0)
+								particle.travelType = TRAVEL_DOWN;
+							else
+								particle.travelType = TRAVEL_UP;
+							if (particle.ux >= 0)
+								particle.travelTypeRoad = TRAVEL_RIGHT;
+							else
+								particle.travelTypeRoad = TRAVEL_LEFT;
+	
+							particle.statusInitialize = 0;
+						}
+				
 					// Log.d("TTTTT","u="+u+" ux="+ux);
-
+					
 					if ((travellingDistance(particle) || travellingDistanceRoad(particle))
-							&& particle.status > 0) {
-						try {
-
-						   
-							boolean collide=false;
-							if(collutionEnable){
-							for(Particle particleCollution : particles){
-								if(particleCollution == particle){
-									continue;
-								}
-								boolean tLeft=((particle.s+particle.height)>=particleCollution.s && (particle.sx+particle.width)>=particleCollution.sx && particle.sx<=particleCollution.sx && particle.s<=particleCollution.s);
-								boolean dLeft=((particle.s+particle.height)>=(particleCollution.s+particleCollution.height) && (particle.sx+particle.width)>=particleCollution.sx && particle.sx<=particleCollution.sx && particle.s<=(particleCollution.s+particleCollution.height));
-								boolean tRight=((particle.s+particle.height)>=(particleCollution.s) && (particle.sx+particle.width)>=(particleCollution.sx+particleCollution.width) && particle.sx<=(particleCollution.sx+particleCollution.width) && particle.s<=(particleCollution.s));
-								boolean dRight=((particle.s+particle.height)>=(particleCollution.s+particleCollution.height) && (particle.sx+particle.width)>=(particleCollution.sx+particleCollution.width) && particle.sx<=(particleCollution.sx+particleCollution.width) && particle.s<=(particleCollution.s+particleCollution.height));
-								
-						        if(tLeft ||
-						           dLeft || 
-						           tRight ||
-						           dRight 
-						          	   
-						         ){
-						        	
-						        	collide=true;
-						        	double dueY=0;
-									double dueX=0;
-									
-						        	double xMatter=0;
-						        	double yMatter=0;
-						        	
-						        	boolean specialCaseY=false;
-						        	boolean specialCaseX=false;
-						        	if(tLeft){
-						        		xMatter=particleCollution.sx;
-						        	    yMatter=particleCollution.s;
-						        	    dueY=(particle.s+particle.height)-yMatter;
-						        	    dueX=(particle.sx+particle.width)-xMatter;
-						        	 
-						        	}
-						        	if(dLeft){
-						        		xMatter=particleCollution.sx;
-						        	    yMatter=particleCollution.s+particleCollution.height;						        	 
-						        	    dueX=(particle.sx+particle.width)-xMatter;
-						        	    dueY=yMatter-particle.s;
-						        	}
-						        	if(tRight){
-						        		xMatter=particleCollution.sx+particleCollution.width;
-						        	    yMatter=particleCollution.s;
-						        	    dueY=(particle.s+particle.height)-yMatter;						        	    
-						        	    dueX=xMatter-particle.sx;
-						        	}
-						        	if(dRight){
-						        		xMatter=particleCollution.sx+particleCollution.width;
-						        	    yMatter=particleCollution.s+particleCollution.height;
-						        	    dueY=yMatter-particle.s;
-						        	    dueX=xMatter-particle.sx;
-						        	}
-						        	//TODO neroshank speicalcases
-//						        	 if((tLeft && dLeft) || (tLeft && tRight) || (tRight && dRight) || (dLeft && dRight)){
-//							        	 if(dueY==0 || dueY==particle.height){
-//							        	    	specialCaseY=true;
-//							        	 }
-//							        	 if(dueX==0 || dueX==particle.width){
-//							        	    	specialCaseX=true;
-//							        	 }
-//						            }
-
-						        	
-										boolean directionSpeed=false;
-																	
-										double dueYZero=(yMatter)-particle.s;
-										double dueXZero=(xMatter)-particle.sx;
-										
-//										if((tLeft) || (dLeft && particleCollution.sx>particlePiviotX) || 
-//										    (tRight && particleCollution.s>particlePiviotY)){
-//											dueY=(particle.s+particle.height)-yMatter;
-//											dueX=(particle.sx+particle.width)-xMatter;
-//										}
-//										if((tRight && (particleCollution.sx+particleCollution.width)<particlePiviotX) || (dRight) || (dLeft && (particleCollution.s+particleCollution.height)<particlePiviotY)){
-//											dueY=(yMatter)-particle.s;
-//											dueX=(xMatter)-particle.sx;
-//										}
-										
-										//TODO neroshank
-										double relativeSpeedX=0;
-										if(particle.travelTypeRoad!=particleCollution.travelTypeRoad){
-											relativeSpeedX=particle.ux+particleCollution.ux;
-										}else{
-											relativeSpeedX=particle.ux-particleCollution.ux;
-										}
-										double impactRelativePC = MotionPhyx.impactPhysx2(-1, particleCollution.m,
-												relativeSpeedX, particleCollution.sh);
-										
-										
-										double relativeSpeedY=0;
-										if(particle.travelType!=particleCollution.travelType){
-											relativeSpeedY=particle.u+particleCollution.u;
-										}else{
-											relativeSpeedY=particle.u-particleCollution.u;
-										}
-										double impactRelativeYPC = MotionPhyx.impactPhysx2(-1, particleCollution.m,
-												relativeSpeedY, particleCollution.sh);
-										
-										
-										
-										if(particle.travelTypeRoad!=particleCollution.travelTypeRoad){
-											relativeSpeedX=particleCollution.ux+particle.ux;
-										}else{
-											relativeSpeedX=particleCollution.ux-particle.ux;
-										}
-										double impactRelativeP = MotionPhyx.impactPhysx2(-1, particleCollution.m,
-												relativeSpeedX, particleCollution.sh);
-										
-										
-										
-										if(particle.travelType!=particleCollution.travelType){
-											relativeSpeedY=particleCollution.u+particle.u;
-										}else{
-											relativeSpeedY=particleCollution.u-particle.u;
-										}
-										double impactRelativeYP = MotionPhyx.impactPhysx2(-1, particleCollution.m,
-												relativeSpeedY, particleCollution.sh);
-										
-										int particleTravelRoadRelative=-1;
-										int particleCollutionTravelRoadRelative=-1;
-										
-										int particleTravelRelative=-1;
-										int particleCollutionTravelRelative=-1;
-
-										if((dueY>=dueX  && dueY>=0 && dueX>=0) || specialCaseY ){
-											//Log.d("TTE", ""+3);
-											//right collution
-											//TODO neroshank
-											if(((particle.sx+particle.width)/2)<xMatter){
-												particleTravelRoadRelative=TRAVEL_RIGHT;
-												particleCollutionTravelRoadRelative=TRAVEL_LEFT;
-											}
-											//left collution
-											if(((particle.sx+particle.width)/2)>xMatter){
-												particleTravelRoadRelative=TRAVEL_LEFT;
-												particleCollutionTravelRoadRelative=TRAVEL_RIGHT;
-											}
-											
-											if(particle.travelTypeRoad==particleTravelRoadRelative){
-												directionSpeed=true;
-											}else{
-												directionSpeed=false;
-											}
-																					
-											particle.ux = MotionPhyx.impactReactionPhysx(
-													(impactRelativeP / impactDivider), particle.m,
-													(particle.ux * particle.impactRatio), -1, 1, directionSpeed);
-											particle.travelTypeRoad=particleTravelRoadRelative;
-											if(particle.ux>0){
-												particle.travelTypeRoad=TRAVEL_RIGHT;
-											}else{
-												particle.travelTypeRoad=TRAVEL_LEFT;
-											}
-											//TODO neroshank
-//											if(particle.ux>0){
-//											    if(particleTravelRoadRelative==TRAVEL_RIGHT)particle.ux*=-1;
-//										    }else{
-//										    	if(particleTravelRoadRelative==TRAVEL_LEFT)particle.ux*=-1;
-//										    }
-											
-											if(particleCollution.travelTypeRoad==particleCollutionTravelRoadRelative){
-												directionSpeed=true;
-											}else{
-												directionSpeed=false;
-											}
-											
-//											if(particle.travelTypeRoad==particleCollution.travelTypeRoad)
-//												impactRelative*=-1;
-											
-											particleCollution.ux = MotionPhyx.impactReactionPhysx(
-													(impactRelativePC / impactDivider), particle.m,
-													(particleCollution.ux * particle.impactRatio), -1, 1, directionSpeed);
-											particleCollution.travelTypeRoad=particleCollutionTravelRoadRelative;
-											if(particleCollution.ux>0){
-												particleCollution.travelTypeRoad=TRAVEL_RIGHT;
-											}else{
-												particleCollution.travelTypeRoad=TRAVEL_LEFT;
-											}
-											//TODO neroshank
-//											if(particleCollution.ux>0){
-//											    if(particleCollutionTravelRoadRelative==TRAVEL_RIGHT)particleCollution.ux*=-1;
-//										    }else{
-//										    	if(particleCollutionTravelRoadRelative==TRAVEL_LEFT)particleCollution.ux*=-1;
-//										    }
-											//TODO Test purpose
-											//particle.ux*=-(0.99);
-											//particleCollution.ux*=-(0.99);
-										} if((dueY<=dueX && dueY>=0 && dueX>=0) || specialCaseX ){
-											//Log.d("TTE", ""+4);
-											//TODO neroshank
-											if(((particle.s+particle.height)/2)<yMatter){
-												particleTravelRelative=TRAVEL_UP;
-												particleCollutionTravelRelative=TRAVEL_DOWN;
-											}
-											//down collution
-											if(((particle.s+particle.height)/2)>yMatter){
-												particleTravelRelative=TRAVEL_DOWN;
-												particleCollutionTravelRelative=TRAVEL_UP;
-											}
-											
-											if(particle.travelType==particleTravelRelative){
-												directionSpeed=true;
-											}else{
-												directionSpeed=false;
-											}
-																					
-											particle.u = MotionPhyx.impactReactionPhysx(
-													(impactRelativeYP / impactDivider), particle.m,
-													(particle.u * particle.impactRatio), -1, 1, directionSpeed);
-											particle.travelType=particleTravelRelative;
-											if(particle.u>0){
-												particle.travelType=TRAVEL_UP;
-											}else{
-												particle.travelType=TRAVEL_DOWN;
-											}
-											//TODO neroshank
-//											 if(particle.u>0){
-//													if(particleTravelRelative==TRAVEL_UP)particle.u*=-1;
-//												}else{
-//													if(particleTravelRelative==TRAVEL_DOWN)particle.u*=-1;
-//												}
-											
-											if(particleCollution.travelType==particleCollutionTravelRelative){
-												directionSpeed=true;
-											}else{
-												directionSpeed=false;
-											}
-											
-//											if(particle.travelType==particleCollution.travelType)
-//												impactRelativeY*=-1;
-																					
-											particleCollution.u = MotionPhyx.impactReactionPhysx(
-													(impactRelativeYPC / impactDivider), particle.m,
-													(particleCollution.u * particle.impactRatio), -1, 1, directionSpeed);
-											particleCollution.travelType=particleCollutionTravelRelative;
-											if(particleCollution.u>0){
-												particleCollution.travelType=TRAVEL_UP;
-											}else{
-												particleCollution.travelType=TRAVEL_DOWN;
-											}
-										//TODO neroshank	
-//									    if(particleCollution.u>0){
-//											if(particleCollutionTravelRelative==TRAVEL_UP)particleCollution.u*=-1;
-//										}else{
-//											if(particleCollutionTravelRelative==TRAVEL_DOWN)particleCollution.u*=-1;
-//										}
-											//TODO Test purpose
-											//particle.u*=-(0.99);
-											//particleCollution.u*=-(0.99);
-										}
-										double dueFix=0;
-										if(tLeft){
-											
-											if((dueY>=dueX && dueY>=0 && dueX>=0 ) || specialCaseY ){
-												dueFix=(particle.sx+particle.width)-(particleCollution.sx-0);
-												if(particleCollution.sx>0)
-													particleCollution.sx+=dueFix;
-												else
-													particleCollution.sx-=dueFix;
-											}
-											
-											if((dueY<=dueX && dueY>=0 && dueX>=0) || specialCaseX ){
-												dueFix=(particle.s+particle.height)-(particleCollution.s-0);
-												if(particleCollution.s>0)
-													particleCollution.s+=dueFix;
-												else
-													particleCollution.s-=dueFix;
-												
-											}
-											//particleCollution.s=particle.s+particle.height;
-										}
-										else if(tRight){
-											
-											if((dueY>=dueX && dueY>=0 && dueX>=0) || specialCaseY ){
-												dueFix=((particleCollution.sx+particleCollution.width)-0)-(particle.sx);
-												if(particleCollution.sx>0)
-													particleCollution.sx-=dueFix;
-												else
-													particleCollution.sx+=dueFix;
-											}
-											
-											if((dueY<=dueX && dueY>=0 && dueX>=0) || specialCaseX ){
-												dueFix=(particle.s+particle.height)-(particleCollution.s-0);
-												if(particleCollution.s>0)
-													particleCollution.s+=dueFix;
-												else
-													particleCollution.s-=dueFix;
-												
-											}
-										}
-										else if(dLeft){
-											
-											if((dueY>=dueX && dueY>=0 && dueX>=0) || specialCaseY ){
-												dueFix=(particle.sx+particle.width)-(particleCollution.sx-0);
-												if(particleCollution.sx>0)
-													particleCollution.sx+=dueFix;
-												else
-													particleCollution.sx-=dueFix;
-											}
-											
-											if((dueY<=dueX && dueY>=0 && dueX>=0) || specialCaseX ){
-												dueFix=((particleCollution.s+particleCollution.height)-0)-particle.s;
-												if(particleCollution.s>0)
-													particleCollution.s-=dueFix;
-												else
-													particleCollution.s+=dueFix;
-												
-											}
-										}
-										else if(dRight){
-											
-											if((dueY>=dueX && dueY>=0 && dueX>=0) || specialCaseY ){
-												dueFix=((particleCollution.sx+particleCollution.width)-0)-(particle.sx);
-												if(particleCollution.sx>0)
-													particleCollution.sx-=dueFix;
-												else
-													particleCollution.sx+=dueFix;
-											}
-											
-											if((dueY<=dueX && dueY>=0 && dueX>=0) || specialCaseX ){
-												dueFix=((particleCollution.s+particleCollution.height)-0)-particle.s;
-												if(particleCollution.s>0)
-													particleCollution.s-=dueFix;
-												else
-													particleCollution.s+=dueFix;
-												
-											}
-										}
-										
-										
-										
-										//TODO neroshank fails multiple collution detection
-										//break;
-						        	
-							    }
+							&& particle.status > 0 ) {
+						try {						    
+							if(collutionEnable){								
+								collutionProcess(particle);
 //									
+							//}
 							}
-							}
+						   
+							
+
+						} catch (Exception e) {
+							//e.printStackTrace();
+						}
 						    particle.preS=particle.s;
 						    particle.preSX=particle.sx;
 							particle.v = MotionPhyx.vuatPhysx(-1, particle.u,
@@ -670,14 +710,10 @@ public class MainActivity extends Activity {
 							particle.left = (int) particle.sx;
 							travellingDistance(particle);
 							travellingDistanceRoad(particle);
-							
-							
-
-						} catch (Exception e) {
-							e.printStackTrace();
-						}
+						
 					}
 					statuses += particle.status;
+					
 					
 				}
 				//}
@@ -708,10 +744,10 @@ public class MainActivity extends Activity {
 		for(int y=0;y<20;y++){
 			for(int x=0;x<15;x++){
 				//if(x!=9){
-					particles[c] = new Particle(0, 0, 0, 0, t, h, (0), (0), 0, ((y*20)), ((x*20)+20),
+					particles[c] = new Particle(0, 0, 0, 0, t, h, (0), (0), 0, ((y*5)), ((x*6)+5),
 							Color.CYAN);
-					particles[c].width=20;
-					particles[c].height=20;
+					particles[c].width=5;
+					particles[c].height=5;
 //				}else{
 //					if(c==299){
 //						particles[c] = new Particle(0, 0, 0, 0, t, h, 0, 0, 0, 400, 50,
