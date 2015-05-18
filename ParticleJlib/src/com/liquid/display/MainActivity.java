@@ -49,7 +49,7 @@ public class MainActivity extends Activity {
 	private ThreadPoolExecutor tPoolExecutor;
 	private LinkedBlockingQueue<Runnable> queueRunnables;
 	
-	private boolean collutionEnable=false;
+	private boolean collutionEnable=true;
 	private Button switchCollution;
 
 	@Override
@@ -187,22 +187,23 @@ public class MainActivity extends Activity {
 		//tCluster=validateDoublePrecision(tCluster);
 	}
 	
-	private ArrayList<Thread> tList;
+	//private ArrayList<Thread> tList;
 
+	private boolean init=false;
 	private void initiateAnim() {
 		System.gc();
-		if(tList==null)
-			tList=new ArrayList<Thread>();
+//		if(tList==null)
+//			tList=new ArrayList<Thread>();
 		double gt = Double.parseDouble(txtGravity.getText().toString());
 
 		MotionPhyx.g = gt;
 		resetEnviroment();
-		
-		for(Thread tResycle : tList){
-			if(tResycle!=null && tResycle.isAlive())
-				tResycle.interrupt();
-		}
-		tList.clear();
+
+//		for(Thread tResycle : tList){
+//			if(tResycle!=null)
+//				tResycle.stop();
+//		}
+//		tList.clear();
 //		Runnable[] runnables = new Runnable[queueRunnables.size()];
 //		// Runnable[] runnables=new Runnable[1];
 //		queueRunnables.toArray(runnables);
@@ -219,17 +220,20 @@ public class MainActivity extends Activity {
 		// queueRunnables.add(particleService);
 		// }
 		System.gc();
-		int partLength=particles.length/NUMBER_OF_CORES;
-		for(int j=0;j<NUMBER_OF_CORES;j++){
-			Particle[] parts=new Particle[partLength];
-			int k=0;
-			for(int i=(partLength*j);i<(partLength*(j+1));i++,k++){
-				parts[k]=particles[i];
+		if(!init){
+			init=true;	
+			int partLength=particles.length/NUMBER_OF_CORES;
+			for(int j=0;j<NUMBER_OF_CORES;j++){
+				Particle[] parts=new Particle[partLength];
+				int k=0;
+				for(int i=(partLength*j);i<(partLength*(j+1));i++,k++){
+					parts[k]=particles[i];
+				}
+				ParticleService particleService = new ParticleService(parts);
+				queueRunnables.add(particleService);
+				new Thread(particleService).start();
+				
 			}
-			ParticleService particleService = new ParticleService(parts);
-			queueRunnables.add(particleService);
-			new Thread(particleService).start();
-			
 		}
 //		ParticleService particleService = new ParticleService(particles);
 //		queueRunnables.add(particleService);
