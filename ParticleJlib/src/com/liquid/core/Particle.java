@@ -1,7 +1,11 @@
 package com.liquid.core;
 
 import android.graphics.Color;
-
+/**
+*
+* @author neroshan kalhara abeywickrama gunaratne
+* email : gnerosh@gmail.com
+*/
 public class Particle {
 	public double u;
 	public double ux;

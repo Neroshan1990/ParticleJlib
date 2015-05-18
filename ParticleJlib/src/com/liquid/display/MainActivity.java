@@ -23,6 +23,12 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+/**
+*
+* @author neroshan kalhara abeywickrama gunaratne
+* email : gnerosh@gmail.com
+*/
+
 public class MainActivity extends Activity {
 
 	private final int NUMBER_OF_CORES = 4;

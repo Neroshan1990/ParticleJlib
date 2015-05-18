@@ -2,7 +2,11 @@ package com.liquid.core;
 
 /**
  * Created by neroshank on 8/22/2014.
- */
+ /**
+*
+* @author neroshan kalhara abeywickrama gunaratne
+* email : gnerosh@gmail.com
+*/
 public class MotionPhyx {
     public static double g=1;
     public MotionPhyx(){

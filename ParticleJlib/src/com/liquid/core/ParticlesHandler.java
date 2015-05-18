@@ -10,7 +10,11 @@ import android.graphics.drawable.Drawable;
 
 /**
  * Created by neroshank on 8/19/2014.
- */
+ /**
+*
+* @author neroshan kalhara abeywickrama gunaratne
+* email : gnerosh@gmail.com
+*/
 public class ParticlesHandler extends Drawable{
 
     public int width=30;
