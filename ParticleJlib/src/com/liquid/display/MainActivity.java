@@ -18,13 +18,14 @@ import com.liquid.core.Particle;
 import com.liquid.core.ParticlesHandler;
 
 import java.text.DecimalFormat;
+import java.util.ArrayList;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 public class MainActivity extends Activity {
 
-	private final int NUMBER_OF_CORES = 1;
+	private final int NUMBER_OF_CORES = 4;
 	// Runtime.getRuntime().availableProcessors();
 
 	private EditText txtGravity;
@@ -65,8 +66,8 @@ public class MainActivity extends Activity {
 		txtSy.setText("" + s);
 
 		queueRunnables = new LinkedBlockingQueue<Runnable>();
-		tPoolExecutor = new ThreadPoolExecutor(NUMBER_OF_CORES,
-				NUMBER_OF_CORES, 1, TimeUnit.SECONDS, queueRunnables);
+//		tPoolExecutor = new ThreadPoolExecutor(NUMBER_OF_CORES,
+//				NUMBER_OF_CORES*2, 60L, TimeUnit.SECONDS, queueRunnables);
 		startAnim.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v1) {
@@ -179,43 +180,55 @@ public class MainActivity extends Activity {
 		tCluster=(0.05/24)*particles.length;
 		//tCluster=validateDoublePrecision(tCluster);
 	}
+	
+	private ArrayList<Thread> tList;
 
 	private void initiateAnim() {
 		System.gc();
+		if(tList==null)
+			tList=new ArrayList<Thread>();
 		double gt = Double.parseDouble(txtGravity.getText().toString());
 
 		MotionPhyx.g = gt;
 		resetEnviroment();
-
-		Runnable[] runnables = new Runnable[queueRunnables.size()];
-		// Runnable[] runnables=new Runnable[1];
-		queueRunnables.toArray(runnables);
-
-		 for(Runnable runnable : runnables){
-			 Thread thread=((ParticleService)runnable).mThread;
-			 if(thread!=null && thread.isAlive())
-				 thread.interrupt();
 		
-		 }
-		queueRunnables.clear();
+		for(Thread tResycle : tList){
+			if(tResycle!=null && tResycle.isAlive())
+				tResycle.interrupt();
+		}
+		tList.clear();
+//		Runnable[] runnables = new Runnable[queueRunnables.size()];
+//		// Runnable[] runnables=new Runnable[1];
+//		queueRunnables.toArray(runnables);
+//
+//		 for(Runnable runnable : runnables){
+//			 Thread thread=((ParticleService)runnable).mThread;
+//			 if(thread!=null && thread.isAlive())
+//				 thread.interrupt();
+//		
+//		 }
+//		queueRunnables.clear();
 		// for(Particle particle : particles){
 		// ParticleService particleService=new ParticleService(particle);
 		// queueRunnables.add(particleService);
 		// }
+		System.gc();
 		int partLength=particles.length/NUMBER_OF_CORES;
 		for(int j=0;j<NUMBER_OF_CORES;j++){
 			Particle[] parts=new Particle[partLength];
 			int k=0;
-			for(int i=(partLength*j);i<partLength;i++,k++){
+			for(int i=(partLength*j);i<(partLength*(j+1));i++,k++){
 				parts[k]=particles[i];
 			}
 			ParticleService particleService = new ParticleService(parts);
 			queueRunnables.add(particleService);
+			new Thread(particleService).start();
 			
 		}
 //		ParticleService particleService = new ParticleService(particles);
 //		queueRunnables.add(particleService);
-		tPoolExecutor.prestartAllCoreThreads();
+		//tPoolExecutor.setMaximumPoolSize(NUMBER_OF_CORES*2);
+		//tPoolExecutor.prestartAllCoreThreads();
 
 	}
 
@@ -739,12 +752,12 @@ public class MainActivity extends Activity {
 	
 
 	private void initParticlesDropDown(){
-		particles=new Particle[300];
+		particles=new Particle[1000];
 		int c=0;
 		for(int y=0;y<20;y++){
-			for(int x=0;x<15;x++){
+			for(int x=0;x<50;x++){
 				//if(x!=9){
-					particles[c] = new Particle(0, 0, 0, 0, t, h, (0), (0), 0, ((y*5)), ((x*6)+5),
+					particles[c] = new Particle(0, 0, 0, 0, t, h, (0), (0), 0, (100+(y*5)), (200+(x*6)+5),
 							Color.CYAN);
 					particles[c].width=5;
 					particles[c].height=5;
@@ -792,7 +805,7 @@ public class MainActivity extends Activity {
 		//particlesHandler.h=(int) h;
 		view.setBackgroundDrawable(particlesHandler);
 
-		 initiateAnim();
+		 //initiateAnim();
 		super.onStart();
 	}
 
